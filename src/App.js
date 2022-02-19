@@ -68,7 +68,9 @@ class Upload extends React.Component{
         
         }
       }
+      // eslint-disable-next-line no-unused-vars
       const subscription = observable.subscribe(observer) // 上传开始
+      
     })
     
     
