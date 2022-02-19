@@ -3,12 +3,8 @@ import React from 'react';
 import './index.css';
 
 const InspireCloud = require ('@byteinspire/js-sdk');
-const serviceId = 'qc8uqz'; // 替换成你的 serviceId，可在后台「设置」页面获取
+const serviceId = 'qc8uqz'; 
 const inspirecloud = new InspireCloud({ serviceId });
-
-
-
-
 
 
 var localCounter = 3;
@@ -16,7 +12,10 @@ var localCounter = 3;
 class ListItem extends React.Component{
   constructor(props) {
     super(props);
-    this.state = {isChecked: false};
+    this.state = {
+      isChecked: false,
+      isOpen:false
+    };
   }
 
   handleDelete(){
@@ -39,24 +38,52 @@ class ListItem extends React.Component{
       this.props.finishItem(msg)
     }
   }
+  handleOpen(){
+    let state = this.state.isOpen
+    this.setState({
+      isOpen:!state
+    })
+  }
   render(){
     return(
-      <li className={"flex p-2 space-x-2 border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
-        <input 
-        onClick={this.handleFinish.bind(this)}  
-        className="bg-white w-8 h-8 border-2 border-black appearance-none checked:bg-green-400 sm:w-4 sm:h-4  " 
-        type="checkbox" 
-        
-        />
-        <div className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline">
-          <p className={"text-xs sm:text-sm flex-1 " + (this.state.isChecked === true?"text-gray-400":'') }>{this.props.value}</p>
-          <p className="text-xs text-gray-400">{this.props.date}</p>
+      <li className={" p-2 space-y-2  border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
+        <div
+         className='flex space-x-2'
+          
+         >
+          <input 
+          onClick={this.handleFinish.bind(this)}  
+          className="bg-white w-8 h-8 border-2 border-black appearance-none checked:bg-green-400 sm:w-4 sm:h-4  " 
+          type="checkbox" 
+          
+          />
+          <div onClick={this.handleOpen.bind(this)} 
+          className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline">
+            <p className={"text-xs sm:text-sm flex-1 " + (this.state.isChecked === true?"text-gray-400":'') }>{this.props.value}</p>
+            <p className="text-xs text-gray-400">{this.props.date}</p>
+          </div>
+          <button 
+            onClick={this.handleDelete.bind(this)}
+            className="bg-white w-8 h-8 sm:w-4 sm:h-4 sm:text-sm">
+            X
+          </button>     
         </div>
-        <button 
-          onClick={this.handleDelete.bind(this)}
-          className="bg-white w-8 h-8 sm:w-4 sm:h-4 sm:text-sm">
-          X
-        </button>     
+        <div className={'space-y-2  flex-col  ' + (this.state.isOpen === true?"flex":"hidden") } >
+          <button 
+            // onClick={this.handleDelete.bind(this)}
+            className="bg-white  sm:text-sm">
+            添加步骤
+          </button>
+          <button 
+            // onClick={this.handleDelete.bind(this)}
+            className="bg-white sm:text-sm">
+            添加图片
+          </button>
+          <img alt=""/>
+          <textarea> 详细内容</textarea>
+
+        </div>
+        
       </li>
       
     );

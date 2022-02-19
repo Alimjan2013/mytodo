@@ -4,8 +4,9 @@ import './index.css';
 import App from './App';
 import Sign from './sign';
 import reportWebVitals from './reportWebVitals';
+
 const InspireCloud = require ('@byteinspire/js-sdk');
-const serviceId = 'qc8uqz'; // 替换成你的 serviceId，可在后台「设置」页面获取
+const serviceId = 'qc8uqz'; 
 const inspirecloud = new InspireCloud({ serviceId });
 
 class Index extends React.Component{
@@ -19,13 +20,9 @@ class Index extends React.Component{
   isLogin() {
     inspirecloud.user.isLogin().then(isLogin => {
       if (!isLogin) {
-        // 未登录，执行登录操作
+        
         console.log('您还没有登录，请登录')
-        // inspirecloud.user.loginByOAuth({
-        //   platform: 'github', // OAuth 认证的平台
-        //   mode: 'redirect', // 选择重定向模式，默认为 redirect
-        //   redirectURL: 'https://my.domain/someRedirectPage' // 这里是授权之后重定向的页面地址
-        // });
+        
       } else {
         console.log('您已登录，可以正常使用');
         this.setState({
