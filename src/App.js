@@ -6,15 +6,143 @@ const InspireCloud = require ('@byteinspire/js-sdk');
 const serviceId = 'qc8uqz'; 
 const inspirecloud = new InspireCloud({ serviceId });
 
+//使用七牛云上传和储存
+//https://developer.qiniu.com/kodo/sdk/javascript
+
+const qiniu = require('qiniu-js')
+
+
+  
+
+
+
 
 var localCounter = 3;
+class Upload extends React.Component{
+  // todo 1.token 需要计算有效期
+  //      2.token 在全局储存
+  //      3.获取图像地址
+  constructor(props){
+    super(props);
+    this.handleFileChange = this.handleFileChange.bind(this)
+    this.state = {
+      fileURL:'',
+      token:''
+    };
+  }
+  upload(fileName,fileObj,gettoken){
+    const config = {
+      useCdnDomain: true,
+      region: qiniu.region.z2
+    };
+    var key = fileName
+    // key 是 需要保存的名称
+    const putExtra = {
+      
+    };
+    
+    var token = gettoken
+    //需要使用云函数获取
+
+    var file = fileObj
+    // 通过表单获取地址
+
+    const options = {
+      quality: 0.92,
+      noCompressIfLarger: true,
+      maxWidth: 1000,
+      // maxHeight: 618
+    }
+    qiniu.compressImage(file, options).then(data => {
+      const observable = qiniu.upload(data.dist, key, token, putExtra, config)
+      const observer = {
+        next(res){
+          console.log(res)
+        },
+        error(err){
+          console.log(err)
+          
+        },
+        complete(res){
+          console.log(res)
+        
+        }
+      }
+      const subscription = observable.subscribe(observer) // 上传开始
+    })
+    
+    
+  }
+  getUploadTokenAndUpload(fileName,fileObj){
+    var token = this.state.token
+    if(token === ''){
+      const fnName = 'qiniuUpload';
+      inspirecloud.run(fnName, {  })
+        .then(data => {
+        console.log(data.token)
+        this.setState({
+          token:data.token,
+        })
+        this.upload(fileName,fileObj,data.token)
+        })
+        .catch(error => {
+          console.log(error)
+        // 处理异常结果
+        });
+      }else{
+        this.upload(fileName,fileObj,token)
+      }
+  }
+    
+
+  handleFileChange(e){
+
+    const file = e.target.files[0];
+    const fileName = '1' + file.name 
+    this.getUploadTokenAndUpload(fileName,file)
+    const reader  = new FileReader();
+    
+
+    // const setState = this.setState()
+    let imgURLBase64 = reader.readAsDataURL(file)
+    // let imageURL = reader.readAsText(file)
+    console.log(file)
+
+    reader.onload = (e) => {
+      console.log(imgURLBase64)
+      console.log(reader.result)
+      
+      this.setState({
+        fileURL:reader.result
+      })
+    }
+    
+  }
+  render(){
+    return(
+      <div>
+        <input type="file"
+            id="avatar" name="avatar"
+            accept="image/png, image/jpeg"
+            ref={this.fileInput}
+            onChange={this.handleFileChange}
+            >
+          </input>
+          <img src={this.state.fileURL} alt=""/>
+      </div>
+    );
+  }
+
+}
 
 class ListItem extends React.Component{
   constructor(props) {
     super(props);
+    this.fileInput = React.createRef();
     this.state = {
       isChecked: false,
-      isOpen:false
+      isOpen:false,
+      fileURL:''
     };
   }
 
@@ -44,6 +172,7 @@ class ListItem extends React.Component{
       isOpen:!state
     })
   }
+ 
   render(){
     return(
       <li className={" p-2 space-y-2  border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
@@ -74,12 +203,13 @@ class ListItem extends React.Component{
             className="bg-white  sm:text-sm">
             添加步骤
           </button>
-          <button 
+          {/* <button 
             // onClick={this.handleDelete.bind(this)}
             className="bg-white sm:text-sm">
             添加图片
-          </button>
-          <img alt=""/>
+          </button> */}
+          <Upload/>
+          {/* {this.fileInput.current.files[0].name} */}
           <textarea> 详细内容</textarea>
 
         </div>
