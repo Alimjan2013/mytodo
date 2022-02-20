@@ -270,7 +270,7 @@ class App extends React.Component{
       list:[{value:'hello',id:'1',date:'2022-1-22',fileURL:''},
             {value:'hii??',id:'2',date:'2022-1-22',fileURL:''}],
       isSignUp:false,
-      token:"fENkK7ws3hLgIx7lu87zXyEVdLX48bYSfwBh7bD3:wMWiIeZGlACubt3sOdRhwkh_RyA=:eyJzY29wZSI6InRlbXBvcmFyeS1hbGltIiwiZGVhZGxpbmUiOjE2NDUzMzA0NzN9",
+      token:"",
       tokenTime:''
     };
   }
@@ -415,8 +415,8 @@ class App extends React.Component{
   }
   getUploadTokenAndUpload(fileName,fileObj,id){
     var token = this.state.token
-    // if(token === '' && this.isTokenTimeOut()){
-    if(token === '' ){
+    if(token === '' && this.isTokenTimeOut()){
+    // if(token === '' ){
       const fnName = 'qiniuUpload';
       inspirecloud.run(fnName, {  })
         .then(data => {
