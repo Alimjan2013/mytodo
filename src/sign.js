@@ -208,7 +208,7 @@ const inspirecloud = new InspireCloud({ serviceId });
               
               />
               <button disabled={this.state.isgetCode ? true:false }  className="bg-gray-300 p-2 w-full disabled:text-gray-500 " type="submit" value="获取验证码" >
-              {this.state.isgetCode ? this.state.count:'获取验证码' }
+              {this.state.isgetCode ? (this.state.count+'s'):'获取验证码' }
               </button>
             </div>
             
@@ -268,9 +268,18 @@ const inspirecloud = new InspireCloud({ serviceId });
             </p>
             {this.state.isgetPhoneNumber === true ? <SignIn getcode={this.getCode.bind(this)}  phoneNumber= {this.state.phoneNumber}/> : <SignUp getdata={this.getDatas.bind(this)} /> } 
             {this.state.isgetPhoneNumber === true ?
-              <button disabled={this.state.code ===""?true:false } onClick={()=>this.onClick()} className='bg-gray-300 p-2  disabled:text-gray-500  w-full'>
-                登录
-              </button>
+              <div>
+                <button disabled={this.state.code ===""?true:false } onClick={()=>this.onClick()} className='bg-gray-300 p-2  disabled:text-gray-500  w-full'>
+                  登录
+                </button>
+                <p className='text-sm text-gray-500  '>
+                未注册的手机号验证通过后将自动注册
+                </p>
+              </div>
+              
+              
+
+
               : ' ' } 
 
             

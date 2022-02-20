@@ -19,9 +19,7 @@ const qiniu = require('qiniu-js')
 
 var localCounter = 3;
 class Upload extends React.Component{
-  // todo 1.token 需要计算有效期
-  //      2.token 在全局储存
-  //      3.获取图像地址
+
   constructor(props){
     super(props);
     this.handleFileChange = this.handleFileChange.bind(this)
@@ -30,81 +28,15 @@ class Upload extends React.Component{
       token:''
     };
   }
-  upload(fileName,fileObj,gettoken){
-    const config = {
-      useCdnDomain: true,
-      region: qiniu.region.z2
-    };
-    var key = fileName
-    // key 是 需要保存的名称
-    const putExtra = {
-      
-    };
-    
-    var token = gettoken
-    //需要使用云函数获取
-
-    var file = fileObj
-    // 通过表单获取地址
-
-    const options = {
-      quality: 0.92,
-      noCompressIfLarger: true,
-      maxWidth: 1000,
-      // maxHeight: 618
-    }
-    qiniu.compressImage(file, options).then(data => {
-      const observable = qiniu.upload(data.dist, key, token, putExtra, config)
-      const observer = {
-        next(res){
-          console.log(res)
-        },
-        error(err){
-          console.log(err)
-          
-        },
-        complete(res){
-          console.log(res)
-        
-        }
-      }
-      // eslint-disable-next-line no-unused-vars
-      const subscription = observable.subscribe(observer) // 上传开始
-      
-    })
-    
-    
-  }
-  getUploadTokenAndUpload(fileName,fileObj){
-    var token = this.state.token
-    if(token === ''){
-      const fnName = 'qiniuUpload';
-      inspirecloud.run(fnName, {  })
-        .then(data => {
-        console.log(data.token)
-        this.setState({
-          token:data.token,
-        })
-        this.upload(fileName,fileObj,data.token)
-        })
-        .catch(error => {
-          console.log(error)
-        // 处理异常结果
-        });
-      }else{
-        this.upload(fileName,fileObj,token)
-      }
-  }
+  
     
 
   handleFileChange(e){
 
     const file = e.target.files[0];
-    const fileName = '1' + file.name 
-    this.getUploadTokenAndUpload(fileName,file)
+    this.props.uploadFile(file)
+    // this.getUploadTokenAndUpload(fileName,file)
     const reader  = new FileReader();
-    
-
     // const setState = this.setState()
     let imgURLBase64 = reader.readAsDataURL(file)
     // let imageURL = reader.readAsText(file)
@@ -151,6 +83,7 @@ class ListItem extends React.Component{
   handleDelete(){
     this.props.deleteItem(this.props.id)
   }
+  
   handleFinish(){
     var id = this.props.id
     var isChecked = this.state.isChecked
@@ -174,7 +107,12 @@ class ListItem extends React.Component{
       isOpen:!state
     })
   }
- 
+  uploadFile(file){
+    console.log('我在listItem收到了File'+ file)
+    var id = this.props.id
+    console.log(id)
+    this.props.uploadFile(file,id)
+  }
   render(){
     return(
       <li className={" p-2 space-y-2  border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
@@ -210,7 +148,9 @@ class ListItem extends React.Component{
             className="bg-white sm:text-sm">
             添加图片
           </button> */}
-          <Upload/>
+          <Upload
+            uploadFile ={this.uploadFile.bind(this)}
+          />
           {/* {this.fileInput.current.files[0].name} */}
           <textarea> 详细内容</textarea>
 
@@ -233,6 +173,12 @@ class List extends React.Component{
       // console.log('完成的列表序号为：'+ index)
       this.props.finishItem(index)
   }
+  uploadFile(file,id){
+    // console.log('完成的列表序号为：'+ index)
+    console.log('我在list收到了File'+ file)
+
+    this.props.uploadFile(file,id)
+  }
   getList(){
     const list = this.props.list
     return(list);
@@ -249,6 +195,7 @@ class List extends React.Component{
                  key = {item.id}
                  id = {item.id}
                  deleteItem ={this.deleteItem.bind(this)}
+                 uploadFile ={this.uploadFile.bind(this)}
         />
       );
       return(
@@ -315,12 +262,16 @@ class Inputer extends React.Component{
 
 
 class App extends React.Component{
+
   constructor(props) {
     super(props);
+    this.upload = this.upload.bind(this)
     this.state = {
-      list:[{value:'hello',id:'1',date:'2022-1-22'},
-            {value:'hii??',id:'2',date:'2022-1-22'}],
-      isSignUp:false
+      list:[{value:'hello',id:'1',date:'2022-1-22',fileURL:''},
+            {value:'hii??',id:'2',date:'2022-1-22',fileURL:''}],
+      isSignUp:false,
+      token:"fENkK7ws3hLgIx7lu87zXyEVdLX48bYSfwBh7bD3:wMWiIeZGlACubt3sOdRhwkh_RyA=:eyJzY29wZSI6InRlbXBvcmFyeS1hbGltIiwiZGVhZGxpbmUiOjE2NDUzMzA0NzN9",
+      tokenTime:''
     };
   }
   getdate(){
@@ -381,39 +332,142 @@ class App extends React.Component{
         list:list
     });
   }
- 
+    // todo
+    //      4.确定是哪一个item的文件
 
-
-isLogin(){
-  inspirecloud.user.isLogin().then(isLogin => {
-    if (!isLogin) {
-      // 未登录，执行登录操作
-      console.log('您还没有登录，请登录')
-      // inspirecloud.user.loginByOAuth({
-      //   platform: 'github', // OAuth 认证的平台
-      //   mode: 'redirect', // 选择重定向模式，默认为 redirect
-      //   redirectURL: 'https://my.domain/someRedirectPage' // 这里是授权之后重定向的页面地址
-      // });
-    } else {
-      console.log('您已登录，可以正常使用');
-      this.setState({
-        isSignUp:true
-      });
-    }
-  });
-  
-} 
-  
- 
-
-needLogin(){
-  if(this.state.isSignUp === true){
-    return false
-  }else{
-    this.isLogin()
-    return true
+  uploadFile(file,id){
+    console.log('file 上传函数被运行')
+    console.log(file)
+    this.getUploadTokenAndUpload(file.name,file,id)
   }
-}
+  updateFile(fileName,id){
+    console.log('我进来了')
+    const list = [...this.state.list];
+    console.log(list)
+    
+    let index = list.findIndex(item => item.id === id)
+    console.log(index)
+    list[index].fileURL = 'http://io.subat.cn/'+ fileName
+    this.setState({
+      list:list
+    });
+
+  }
+  upload(fileName,fileObj,gettoken,id){
+    const config = {
+      useCdnDomain: true,
+      region: qiniu.region.z2
+    };
+    var key = Date.now() + fileName
+    // key 是 需要保存的名称
+    const putExtra = {
+      
+    };
+    
+    var token = gettoken
+    //需要使用云函数获取
+
+    var file = fileObj
+    // 通过表单获取地址
+
+    const options = {
+      quality: 0.92,
+      noCompressIfLarger: true,
+      maxWidth: 1000,
+      // maxHeight: 618
+    }
+    
+    
+    qiniu.compressImage(file, options).then(data => {
+      let outsidethis = this
+      const observable = qiniu.upload(data.dist, key, token, putExtra, config)
+      const observer = {
+        next(res){
+          console.log(res)
+        },
+        error(err){
+          console.log(err)
+          
+        },
+        complete(res){
+          console.log(res)
+          outsidethis.updateFile(key,id)
+          
+        }
+      }
+      // eslint-disable-next-line no-unused-vars
+      const subscription = observable.subscribe(observer) // 上传开始
+      
+    })
+    
+    
+  }
+  isTokenTimeOut(){
+    let now = Date.now()
+    let deltaT = ((now - this.state.tokenTime)/1000)/60
+    if(this.state.tokenTime === 0){
+      return true
+    }else if(deltaT >=  59){
+      return true
+    }else{
+      return false
+    }
+  }
+  getUploadTokenAndUpload(fileName,fileObj,id){
+    var token = this.state.token
+    // if(token === '' && this.isTokenTimeOut()){
+    if(token === '' ){
+      const fnName = 'qiniuUpload';
+      inspirecloud.run(fnName, {  })
+        .then(data => {
+        // console.log(data.token)
+        this.setState({
+          token:data.token,
+          tokenTime:Date.now()
+        })
+        this.upload(fileName,fileObj,data.token,id)
+        })
+        .catch(error => {
+          console.log(error)
+        // 处理异常结果
+        });
+      }else{
+        this.upload(fileName,fileObj,token)
+      }
+  }
+ 
+
+
+  isLogin(){
+    inspirecloud.user.isLogin().then(isLogin => {
+      if (!isLogin) {
+        // 未登录，执行登录操作
+        console.log('您还没有登录，请登录')
+        // inspirecloud.user.loginByOAuth({
+        //   platform: 'github', // OAuth 认证的平台
+        //   mode: 'redirect', // 选择重定向模式，默认为 redirect
+        //   redirectURL: 'https://my.domain/someRedirectPage' // 这里是授权之后重定向的页面地址
+        // });
+      } else {
+        console.log('您已登录，可以正常使用');
+        this.setState({
+          isSignUp:true
+        });
+      }
+    });
+    
+  } 
+  
+ 
+
+  needLogin(){
+    if(this.state.isSignUp === true){
+      return false
+    }else{
+      this.isLogin()
+      return true
+    }
+  }
 
   renderInputer() {
     return (
@@ -428,14 +482,15 @@ needLogin(){
       <List
         list = {this.state.list}
         deleteItem = {this.deleteItem.bind(this)}
+        uploadFile = {this.uploadFile.bind(this)}
         finishItem = {this.finishItem.bind(this)}
+        file = {this.state.file}
       />
     );
   }
   render(){
       return(
           <div className='  space-y-3 col-span-12 sm:col-span-3 md:col-span-5 lg:md:col-span-4' >
-          
           {this.renderInputer()}
           {this.renderList()}
           </div>  
