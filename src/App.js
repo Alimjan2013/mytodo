@@ -189,11 +189,11 @@ class List extends React.Component{
       const listItems = list.map((item) => 
       
         <ListItem 
-                 value = {item.value}
-                 date = {item.date}
+                 value = {item.context}
+                 date = {item.createdAt}
                  finishItem = {this.finishItem.bind(this)}
-                 key = {item.id}
-                 id = {item.id}
+                 key = {item._id}
+                 id = {item._id}
                  deleteItem ={this.deleteItem.bind(this)}
                  uploadFile ={this.uploadFile.bind(this)}
         />
@@ -267,11 +267,12 @@ class App extends React.Component{
     super(props);
     this.upload = this.upload.bind(this)
     this.state = {
-      list:[{value:'hello',id:'1',date:'2022-1-22',fileURL:''},
-            {value:'hii??',id:'2',date:'2022-1-22',fileURL:''}],
+      list:[],
+      todo_item:[],
       isSignUp:false,
       token:"",
-      tokenTime:''
+      tokenTime:'',
+      user_id:'62020c725fc68c020d7fad03'
     };
   }
   getdate(){
@@ -285,12 +286,28 @@ class App extends React.Component{
     )
   }
   deleteItem(id){
-    const list = [...this.state.list];
-    list.splice(list.findIndex(item => item.id === id),1,);
+    //从本地删除
+    // const list = [...this.state.list];
+    // list.splice(list.findIndex(item => item.id === id),1,);
     // console.log(list)
-    this.setState({
-      list:list
-    });
+
+    const user_id = this.state.user_id
+    const fnName = 'delete_item';
+      inspirecloud.run(fnName, { user_id: user_id,id:id })
+          .then(data => {
+          console.log(data)
+          this.setState({
+            todo_item:data.newList,
+            list:data.newList,
+          })          
+          })
+          .catch(error => {
+            console.log(error)
+          // 处理异常结果
+          });
+
+
+   
   }
   finishItem(id){
     // console.log('收到了来自 List的完成index：'+id[0])
@@ -317,20 +334,53 @@ class App extends React.Component{
   }
   addItem(msg){
     //把子组件传递过来的值赋给this.state中的属性
-    const list = this.state.list
-    const date = this.getdate()
-    let id = localCounter++
-    list.unshift(
-      {
-        value:msg,
-        id: id.toString(),
-        date: date
-      }
+    const context = msg
+    const user_id = this.state.user_id
+    const done = false
+    const fnName = 'creat_item';
+      inspirecloud.run(fnName, { user_id: user_id,done:done,context:context })
+          .then(data => {
+          console.log(data)
+          this.setState({
+            todo_item:data.list,
+            list:data.list,
+          })          
+          })
+          .catch(error => {
+            console.log(error)
+          // 处理异常结果
+          });
+
+
+    // const list = this.state.list
+    // const date = this.getdate()
+    // let id = localCounter++
+    // list.unshift(
+    //   {
+    //     value:msg,
+    //     id: id.toString(),
+    //     date: date
+    //   }
       
-      )
-    this.setState({
-        list:list
-    });
+    //   )
+    // this.setState({
+    //     list:list
+    // });
+  }
+  findtodoitem(user_id){
+    const fnName = 'find_item';
+      inspirecloud.run(fnName, { user_id: user_id })
+          .then(data => {
+          console.log(data)
+          this.setState({
+            todo_item:data.result,
+            list:data.result,
+          })          
+          })
+          .catch(error => {
+            console.log(error)
+          // 处理异常结果
+          });
   }
     // todo
     //      4.确定是哪一个item的文件
@@ -458,7 +508,11 @@ class App extends React.Component{
     
   } 
   
- 
+  componentDidMount() {
+    if(this.state.todo_item.length === 0){
+      this.findtodoitem(this.state.user_id)
+    }
+  }
 
   needLogin(){
     if(this.state.isSignUp === true){
