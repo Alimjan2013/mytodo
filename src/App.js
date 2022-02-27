@@ -1,6 +1,7 @@
 import React from 'react';
 // import cloudbase from "@cloudbase/js-sdk";
 import './index.css';
+import Toast from './toast';
 
 const InspireCloud = require ('@byteinspire/js-sdk');
 const serviceId = 'qc8uqz'; 
@@ -17,7 +18,7 @@ const qiniu = require('qiniu-js')
 
 
 
-var localCounter = 3;
+
 class Upload extends React.Component{
 
   constructor(props){
@@ -287,27 +288,23 @@ class App extends React.Component{
   }
   deleteItem(id){
     //从本地删除
-    // const list = [...this.state.list];
-    // list.splice(list.findIndex(item => item.id === id),1,);
+    const list = [...this.state.list];
+    list.splice(list.findIndex(item => item._id === id),1,);
     // console.log(list)
-
+    this.setState({
+      todo_item:list,
+      list:list,
+    })  
     const user_id = this.state.user_id
     const fnName = 'delete_item';
       inspirecloud.run(fnName, { user_id: user_id,id:id })
           .then(data => {
           console.log(data)
-          this.setState({
-            todo_item:data.newList,
-            list:data.newList,
-          })          
+          Toast.success('删除成功')
           })
           .catch(error => {
             console.log(error)
-          // 处理异常结果
           });
-
-
-   
   }
   finishItem(id){
     // console.log('收到了来自 List的完成index：'+id[0])
@@ -338,7 +335,7 @@ class App extends React.Component{
     const user_id = this.state.user_id
     const done = false
     const fnName = 'creat_item';
-      inspirecloud.run(fnName, { user_id: user_id,done:done,context:context })
+      inspirecloud.run(fnName, { user_id: user_id,done:done,context:context ,file:'' })
           .then(data => {
           console.log(data)
           this.setState({
