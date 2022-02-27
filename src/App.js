@@ -75,7 +75,7 @@ class ListItem extends React.Component{
     super(props);
     this.fileInput = React.createRef();
     this.state = {
-      isChecked: false,
+      isChecked: this.props.isChecked,
       isOpen:false,
       fileURL:''
     };
@@ -87,18 +87,21 @@ class ListItem extends React.Component{
   
   handleFinish(){
     var id = this.props.id
-    var isChecked = this.state.isChecked
-    var msg = [id,isChecked]
+    var done = this.state.isChecked
+    var msg = [id,done]
+    console.log(msg)
     // console.log(msg)
     if (this.state.isChecked === false){
       this.setState({
         isChecked:true
       })
+      msg[1] = true
       this.props.finishItem(msg)
     }else{
       this.setState({
         isChecked:false
       })
+      msg[1] = false
       this.props.finishItem(msg)
     }
   }
@@ -119,13 +122,12 @@ class ListItem extends React.Component{
       <li className={" p-2 space-y-2  border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
         <div
          className='flex space-x-2'
-          
          >
           <input 
           onClick={this.handleFinish.bind(this)}  
           className="bg-white w-8 h-8 border-2 border-black appearance-none checked:bg-green-400 sm:w-4 sm:h-4  " 
           type="checkbox" 
-          
+          checked = {this.state.isChecked}
           />
           <div onClick={this.handleOpen.bind(this)} 
           className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline">
@@ -195,6 +197,7 @@ class List extends React.Component{
                  finishItem = {this.finishItem.bind(this)}
                  key = {item._id}
                  id = {item._id}
+                 isChecked = {item.done}
                  deleteItem ={this.deleteItem.bind(this)}
                  uploadFile ={this.uploadFile.bind(this)}
         />
@@ -307,25 +310,46 @@ class App extends React.Component{
           });
   }
   finishItem(id){
+    const list = [...this.state.list];
+    let index = list.findIndex(item => item._id === id[0])
+    console.log(id[1])
+    list[index].done = !id[1]
+    
+    console.log(list[index].done)
+    
+    this.setState({
+          list:list
+    });
+    const fnName = 'update_item';
+      inspirecloud.run(fnName, { id:id[0] , update:[{done:id[1]}] })
+          .then(data => {
+          console.log(data)
+          Toast.success('删除成功')
+          })
+          .catch(error => {
+            console.log(error)
+          });
+    
     // console.log('收到了来自 List的完成index：'+id[0])
-    if(id[1] === false){
-      const list = [...this.state.list];
-      let index = list.findIndex(item => item.id[0] === id[0])
-      list.splice(list.length-1,0,list.splice(index,1)[0])  
-      // console.log(list)
-      this.setState({
-        list:list
-      });
-    }else{
-      const list = [...this.state.list];
-      let index = list.findIndex(item => item.id[0] === id[0])
-      list.splice(0,0,list.splice(index,1)[0])  
-      // console.log(list)
-      this.setState({
-        list:list
-      });
-      // console.log('换成打开的状态了')
-    }
+    // if(id[1] === false){
+    //   const list = [...this.state.list];
+    //   let index = list.findIndex(item => item.id[0] === id[0])
+    //   list.splice(list.length-1,0,list.splice(index,1)[0])  
+    //   // console.log(list)
+    //   this.setState({
+    //     list:list
+    //   });
+    // }else{
+    //   const list = [...this.state.list];
+    //   let index = list.findIndex(item => item.id[0] === id[0])
+    //   list.splice(0,0,list.splice(index,1)[0])  
+    //   // console.log(list)
+    //   this.setState({
+    //     list:list
+    //   });
+    //   // console.log('换成打开的状态了')
+    // }
+
     
 
   }
