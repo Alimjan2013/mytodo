@@ -486,11 +486,11 @@ class App extends React.Component{
   }
   componentDidMount() {
     if(this.state.todo_item.length === 0){
-      this.findtodoitem(this.props.userId)
+      this.findtodoitem(this.props.userID)
     }
     console.log('我在运行')
     this.setState({
-      user_id : this.props.userId
+      user_id : this.props.userID
     })
   }
 
