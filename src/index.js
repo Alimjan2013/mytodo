@@ -16,27 +16,30 @@ class Index extends React.Component{
       isSignUp:false
     };
   }
-  
-  isLogin() {
-    inspirecloud.user.isLogin().then(isLogin => {
-      if (!isLogin) {
-        
-        console.log('您还没有登录，请登录')
-        
-      } else {
-        console.log('您已登录，可以正常使用');
-        this.setState({
-          isSignUp: true
-        });
-      }
-    });
+ 
+  getUser(){
+    if(this.state.isSignUp === false){
+      inspirecloud.run('getUser', {}).then(res => {
+        if(res.user){
+          console.log(res.user._id);
+          this.setState({
+            userID:res.user._id,
+            isSignUp:true
+          })
+      
+        }else{
+          this.setState({
+            
+            isSignUp:false
+          })
+          
+        }
+      });
+    }
   }
-  needLogin(){
-    if(this.state.isSignUp === true){
-      return false
-    }else{
-      this.isLogin()
-      return true
+  componentDidMount() {
+    if(this.state.isSignUp === false){
+      this.getUser()
     }
   }
   getDatas(msg){
@@ -47,15 +50,21 @@ class Index extends React.Component{
   }
 
   render(){
+     const isSignUp = this.state.isSignUp;
+     console.log(isSignUp)
+     let app;
+      if (isSignUp) {
+        app =  <App userID={this.state.userID} /> ;
+      }else {
+        app = <Sign getdata={this.getDatas.bind(this)} /> ;
+      }
       return(
         <div className='grid  sm:grid-cols-6 md:grid-cols-12  gap-2  p-4 h-screen '>
-          {this.needLogin() === true ? <Sign getdata={this.getDatas.bind(this)} /> : <App /> } 
-          {/* <Sign  getdata={this.getDatas.bind(this)}/> */}
-          {/* <App /> */}
+          {app}
           {console.log('现在的状态是:'+this.state.isSignUp)}
           <div className='hidden sm:flex sm:col-span-3 md:col-span-7 lg:col-span-8 bg-gray-400 p-4 '>
             123 
-      
+           
           </div>
         </div>
       );

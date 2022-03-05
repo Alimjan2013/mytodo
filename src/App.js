@@ -276,7 +276,7 @@ class App extends React.Component{
       isSignUp:false,
       token:"",
       tokenTime:'',
-      user_id:'62020c725fc68c020d7fad03'
+      // user_id:'62020c725fc68c020d7fad03'
     };
   }
   getdate(){
@@ -329,28 +329,6 @@ class App extends React.Component{
           .catch(error => {
             console.log(error)
           });
-    
-    // console.log('收到了来自 List的完成index：'+id[0])
-    // if(id[1] === false){
-    //   const list = [...this.state.list];
-    //   let index = list.findIndex(item => item.id[0] === id[0])
-    //   list.splice(list.length-1,0,list.splice(index,1)[0])  
-    //   // console.log(list)
-    //   this.setState({
-    //     list:list
-    //   });
-    // }else{
-    //   const list = [...this.state.list];
-    //   let index = list.findIndex(item => item.id[0] === id[0])
-    //   list.splice(0,0,list.splice(index,1)[0])  
-    //   // console.log(list)
-    //   this.setState({
-    //     list:list
-    //   });
-    //   // console.log('换成打开的状态了')
-    // }
-
-    
 
   }
   addItem(msg){
@@ -506,42 +484,14 @@ class App extends React.Component{
         this.upload(fileName,fileObj,token)
       }
   }
- 
-
-
-  isLogin(){
-    inspirecloud.user.isLogin().then(isLogin => {
-      if (!isLogin) {
-        // 未登录，执行登录操作
-        console.log('您还没有登录，请登录')
-        // inspirecloud.user.loginByOAuth({
-        //   platform: 'github', // OAuth 认证的平台
-        //   mode: 'redirect', // 选择重定向模式，默认为 redirect
-        //   redirectURL: 'https://my.domain/someRedirectPage' // 这里是授权之后重定向的页面地址
-        // });
-      } else {
-        console.log('您已登录，可以正常使用');
-        this.setState({
-          isSignUp:true
-        });
-      }
-    });
-    
-  } 
-  
   componentDidMount() {
     if(this.state.todo_item.length === 0){
-      this.findtodoitem(this.state.user_id)
+      this.findtodoitem(this.props.userId)
     }
-  }
-
-  needLogin(){
-    if(this.state.isSignUp === true){
-      return false
-    }else{
-      this.isLogin()
-      return true
-    }
+    console.log('我在运行')
+    this.setState({
+      user_id : this.props.userId
+    })
   }
 
   renderInputer() {
@@ -573,4 +523,5 @@ class App extends React.Component{
       
   }
 }
+
 export default App;
