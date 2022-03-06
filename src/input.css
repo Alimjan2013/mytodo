@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    .btn {
+        @apply disabled:text-text-2 disabled:border-line-2 text-text-5 border-line-4 rounded-md bg-fill-2 p-2  border-2  ;
+    }
+    .input {
+        @apply  text-text-5 border-line-3 rounded-md bg-fill-1 p-2 border-2   placeholder:text-text-2  ;
+    }
+    .btn_sec{
+        @apply disabled:text-text-2 disabled:border-line-2 text-text-4 border-line-3 rounded-md bg-fill-2  border-2  ;
+
+    }
+    
+  }
+ 
+
+
+  

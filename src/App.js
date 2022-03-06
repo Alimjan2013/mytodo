@@ -127,20 +127,20 @@ class ListItem extends React.Component{
   }
   render(){
     return(
-      <li className={" p-2 space-y-2  border-b-2 items-center  "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
+      <li className={" p-2 space-y-2 rounded-md items-center  "+(this.state.isChecked === true?"bg-fill-3":"bg-fill-4")}>
         <div
-         className='flex space-x-2'
+         className='flex space-x-2  items-center '
          >
           <input 
           onClick={this.handleFinish.bind(this)}  
-          className="bg-white w-8 h-8 border-2 border-black appearance-none checked:bg-green-400 sm:w-4 sm:h-4  " 
+          className="bg-fill-1 rounded-md  w-8 h-8 border-2 border-black appearance-none checked:bg-green-1 sm:w-4 sm:h-4  " 
           type="checkbox" 
           checked = {this.state.isChecked}
           />
           <div onClick={this.handleOpen.bind(this)} 
           className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline ">
-            <p className={"text-xs sm:text-sm flex-1 " + (this.state.isChecked === true?"text-gray-400  line-through":'') }>{this.props.value}</p>
-            <p className="text-xs text-gray-400 ">{this.dateProcess(this.props.date)}</p>
+            <p className={"text-sm sm:text-sm flex-1 " + (this.state.isChecked === true?"text-text-3  line-through":'text-text-5') }>{this.props.value}</p>
+            <p className="text-xs text-text-3 ">{this.dateProcess(this.props.date)}</p>
           </div>
           <button 
             onClick={this.handleDelete.bind(this)}
@@ -151,7 +151,7 @@ class ListItem extends React.Component{
         <div className={'space-y-2  flex-col ' + (this.state.isOpen === true?"flex":"hidden") } >
           <button 
             // onClick={this.handleDelete.bind(this)}
-            className="bg-white  sm:text-sm">
+            className="btn  sm:text-sm">
             添加步骤
           </button>
           {/* <button 
@@ -212,8 +212,8 @@ class List extends React.Component{
         />
       );
       return(
-          <div className='bg-gray-300 p-2 space-y-2'> 
-              <ul className=''>
+          <div className=''> 
+              <ul className='bg-fill-2 p-2 space-y-4 rounded-md'>
                   {listItems}
               </ul>
           </div>
@@ -259,14 +259,14 @@ class Inputer extends React.Component{
         <label className="flex-1 flex" >
           <input 
           type="text" 
-          className="h-7 rounded-sm flex-1 p-2 " 
+          className="input flex-1  " 
           placeholder="请输入接下来的事儿" 
           value={this.state.value} 
           // onChange={() => this.props.onChange()}  
           onChange={this.handleChange}  
           />
         </label>
-        <input className="w-7 h-7 bg-white" type="submit" value="+" />
+        <input className="btn w-10 h-10" type="submit" value="+" />
       </form>
         
       )
