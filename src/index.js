@@ -18,43 +18,40 @@ class Index extends React.Component{
   }
  
   getUser(){
-    if(this.state.isSignUp === false){
-      inspirecloud.run('getUser', {}).then(res => {
-        if(res.user){
-          console.log(res.user._id);
-          this.setState({
-            userID:res.user._id,
-            isSignUp:true
-          })
-      
-        }else{
-          this.setState({
-            
-            isSignUp:false
-          })
-          
-        }
-      });
-    }
+    inspirecloud.run('getUser', {}).then(res => {
+      if(res.user){
+        console.log(res.user._id);
+        this.setState({
+          userID:res.user._id,
+          isSignUp:true
+        })
+      }else{
+        this.setState({
+          isSignUp:false
+        })
+      }
+    });
   }
+
   componentDidMount() {
-    if(this.state.isSignUp === false){
-      this.getUser()
-    }
+    this.getUser()
   }
   getDatas(msg){
     //把子组件传递过来的值赋给this.state中的属性
+    this.getUser()
     this.setState({
       isSignUp: msg,
     });
+    
   }
 
   render(){
      const isSignUp = this.state.isSignUp;
-     console.log(isSignUp)
+     const user_id = this.state.userID
+    
      let app;
-      if (isSignUp) {
-        app =  <App userID={this.state.userID} /> ;
+      if (isSignUp && user_id !== undefined ) {
+        app =  <App userID={user_id} /> ;
       }else {
         app = <Sign getdata={this.getDatas.bind(this)} /> ;
       }
@@ -78,7 +75,6 @@ ReactDOM.render(
 
   <React.StrictMode>
     <Index/>
-    
   </React.StrictMode>,
   document.getElementById('root')
 );

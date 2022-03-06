@@ -117,9 +117,17 @@ class ListItem extends React.Component{
     console.log(id)
     this.props.uploadFile(file,id)
   }
+  dateProcess(date){
+  
+   const NewDate = new Date(date.toString())
+   const time = NewDate.getFullYear()+'-'+(NewDate.getMonth()+1)+'-'+NewDate.getDate()
+
+   return time
+
+  }
   render(){
     return(
-      <li className={" p-2 space-y-2  border-b-2 items-center "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
+      <li className={" p-2 space-y-2  border-b-2 items-center  "+(this.state.isChecked === true?"bg-gray-200":"bg-gray-100")}>
         <div
          className='flex space-x-2'
          >
@@ -130,9 +138,9 @@ class ListItem extends React.Component{
           checked = {this.state.isChecked}
           />
           <div onClick={this.handleOpen.bind(this)} 
-          className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline">
-            <p className={"text-xs sm:text-sm flex-1 " + (this.state.isChecked === true?"text-gray-400":'') }>{this.props.value}</p>
-            <p className="text-xs text-gray-400">{this.props.date}</p>
+          className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline ">
+            <p className={"text-xs sm:text-sm flex-1 " + (this.state.isChecked === true?"text-gray-400  line-through":'') }>{this.props.value}</p>
+            <p className="text-xs text-gray-400 ">{this.dateProcess(this.props.date)}</p>
           </div>
           <button 
             onClick={this.handleDelete.bind(this)}
@@ -140,7 +148,7 @@ class ListItem extends React.Component{
             X
           </button>     
         </div>
-        <div className={'space-y-2  flex-col  ' + (this.state.isOpen === true?"flex":"hidden") } >
+        <div className={'space-y-2  flex-col ' + (this.state.isOpen === true?"flex":"hidden") } >
           <button 
             // onClick={this.handleDelete.bind(this)}
             className="bg-white  sm:text-sm">
@@ -151,9 +159,10 @@ class ListItem extends React.Component{
             className="bg-white sm:text-sm">
             添加图片
           </button> */}
-          <Upload
+
+          {/* <Upload
             uploadFile ={this.uploadFile.bind(this)}
-          />
+          /> */}
           {/* {this.fileInput.current.files[0].name} */}
           <textarea> 详细内容</textarea>
 
@@ -276,8 +285,27 @@ class App extends React.Component{
       isSignUp:false,
       token:"",
       tokenTime:'',
-      // user_id:'62020c725fc68c020d7fad03'
+      user_id:''
     };
+  }
+  componentDidMount() {
+    // const a = (this.state.todo_item.length === 0)
+    // console.log(a)
+    // const b = this.props.userID
+    // console.log(b)
+    // const c = a && b
+    // console.log(c)
+    // if(this.state.todo_item.length === 0 && this.props.userID ){
+      
+    // }
+
+    this.setState({
+      user_id : this.props.userID
+    })
+
+    this.findtodoitem(this.props.userID)
+    
+    console.log('我在运行')
   }
   getdate(){
     var nowdate = new Date();
@@ -381,9 +409,6 @@ class App extends React.Component{
           // 处理异常结果
           });
   }
-    // todo
-    //      4.确定是哪一个item的文件
-
   uploadFile(file,id){
     console.log('file 上传函数被运行')
     console.log(file)
@@ -484,16 +509,6 @@ class App extends React.Component{
         this.upload(fileName,fileObj,token)
       }
   }
-  componentDidMount() {
-    if(this.state.todo_item.length === 0){
-      this.findtodoitem(this.props.userID)
-    }
-    console.log('我在运行')
-    this.setState({
-      user_id : this.props.userID
-    })
-  }
-
   renderInputer() {
     return (
     <Inputer
@@ -514,6 +529,7 @@ class App extends React.Component{
     );
   }
   render(){
+    
       return(
           <div className='  space-y-3 col-span-12 sm:col-span-3 md:col-span-5 lg:md:col-span-4' >
           {this.renderInputer()}
