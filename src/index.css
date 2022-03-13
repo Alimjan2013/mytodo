@@ -627,6 +627,15 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-width: 2px;
 }
 
+.border-b-2 {
+  border-bottom-width: 2px;
+}
+
+.border-line-3 {
+  --tw-border-opacity: 1;
+  border-color: rgb(201 205 212 / var(--tw-border-opacity));
+}
+
 .bg-fill-3 {
   --tw-bg-opacity: 1;
   background-color: rgb(242 243 245 / var(--tw-bg-opacity));

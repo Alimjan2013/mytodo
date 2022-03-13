@@ -126,11 +126,10 @@ class ListItem extends React.Component{
 
   }
   render(){
+    
     return(
       <li className={" p-2 space-y-2 rounded-md items-center  "+(this.state.isChecked === true?"bg-fill-3":"bg-fill-4")}>
-        <div
-         className='flex space-x-2  items-center '
-         >
+        <div className='flex space-x-2  items-center '>
           <input 
           onClick={this.handleFinish.bind(this)}  
           className="bg-fill-1 rounded-md  w-8 h-8 border-2 border-black appearance-none checked:bg-green-1 sm:w-4 sm:h-4  " 
@@ -168,11 +167,191 @@ class ListItem extends React.Component{
 
         </div>
         
-      </li>
+      </li> 
+    );
+  }
+}
+class TodoItemDetail extends React.Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      textAreaValue: ''
+    };
+    this.handleChangeTextarea = this.handleChangeTextarea.bind(this);
+  }
+ 
+  
+  handleFinish(){
+    var id = this.props.id
+    var done = this.state.isChecked
+    var msg = [id,done]
+    console.log(msg)
+    // console.log(msg)
+    if (this.state.isChecked === false){
+      this.setState({
+        isChecked:true
+      })
+      msg[1] = true
+      this.props.finishItem(msg)
+    }else{
+      this.setState({
+        isChecked:false
+      })
+      msg[1] = false
+      this.props.finishItem(msg)
+    }
+  }
+  handleOpen(){
+    let state = this.props.isOpen
+    this.setState({
+      isOpen:!state
+    })
+  }
+  handleChangeTextarea(event){
+    this.setState({
+      textAreaValue:event.target.value
+    })
+  }
+  uploadFile(file){
+    console.log('我在listItem收到了File'+ file)
+    var id = this.props.id
+    console.log(id)
+    this.props.uploadFile(file,id)
+  }
+ 
+  render(){
+    
+    return(
+      <li className={" p-2 space-y-2 rounded-md items-center "+(this.props.isChecked === true?"bg-fill-3":"bg-fill-4")}>
+        <div className='flex space-x-2  items-center '>
+          <input 
+          onClick={this.handleFinish.bind(this)}  
+          className="bg-fill-1 rounded-md  w-8 h-8 border-2 border-black appearance-none checked:bg-green-1 sm:w-4 sm:h-4  " 
+          type="checkbox" 
+          defaultChecked = {this.props.isChecked}
+          />
+          <div onClick={this.handleOpen.bind(this)} className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline border-b-2 border-line-3 ">
+            <p className={"text-sm sm:text-sm flex-1 " + (this.props.isChecked === true?"text-text-3  line-through":'text-text-5') }>{this.props.value}</p>
+          </div>
+        </div>    
+      
+        <div className={'space-y-2   flex-1' } >
+          {/* <button 
+            // onClick={this.handleDelete.bind(this)}
+            className="btn  sm:text-sm">
+            添加步骤
+          </button> */}
+          {/* <button 
+            // onClick={this.handleDelete.bind(this)}
+            className="bg-white sm:text-sm">
+            添加图片
+          </button>
+
+          <Upload uploadFile ={this.uploadFile.bind(this)}/>
+          {this.fileInput.current.files[0].name} */}
+          <textarea  className=' w-full ' value={this.state.textAreaValue} onChange={this.handleChangeTextarea}> </textarea>
+
+        </div>
+      
+        
+      </li> 
+    );
+  }
+}
+
+
+class TodoItem extends React.Component{
+  constructor(props) {
+    super(props);
+    this.fileInput = React.createRef();
+    this.state = {
+      isChecked: this.props.isChecked,
+      isOpen:false,
+      fileURL:''
+    };
+  }
+  handleDelete(){
+    this.props.deleteItem(this.props.id)
+  }
+  
+  handleFinish(){
+    var id = this.props.id
+    var done = this.state.isChecked
+    var msg = [id,done]
+    console.log(msg)
+    // console.log(msg)
+    if (this.state.isChecked === false){
+      this.setState({
+        isChecked:true
+      })
+      msg[1] = true
+      this.props.finishItem(msg)
+    }else{
+      this.setState({
+        isChecked:false
+      })
+      msg[1] = false
+      this.props.finishItem(msg)
+    }
+  }
+  handleOpen(){
+    let state = this.state.isOpen
+    this.setState({
+      isOpen:!state
+    })
+  }
+  uploadFile(file){
+    console.log('我在listItem收到了File'+ file)
+    var id = this.props.id
+    console.log(id)
+    this.props.uploadFile(file,id)
+  }
+  dateProcess(date){
+  
+   const NewDate = new Date(date.toString())
+   const time = NewDate.getFullYear()+'-'+(NewDate.getMonth()+1)+'-'+NewDate.getDate()
+
+   return time
+
+  }
+  render(){
+    let item;
+    if(this.state.isOpen){
+      item = <TodoItemDetail isChecked = {this.state.isChecked} value = {this.props.value}/>
+    }else{
+      item =
+      <li className={" p-2 space-y-2 rounded-md items-center  "+(this.state.isChecked === true?"bg-fill-3":"bg-fill-4")}>
+        <div className='flex space-x-2  items-center '>
+          <input 
+          onClick={this.handleFinish.bind(this)}  
+          className="bg-fill-1 rounded-md  w-8 h-8 border-2 border-black appearance-none checked:bg-green-1 sm:w-4 sm:h-4  " 
+          type="checkbox" 
+          defaultChecked = {this.state.isChecked}
+          />
+          <div onClick={this.handleOpen.bind(this)} 
+          className="space-y-1 flex-1 sm:flex sm:space-x-1 items-baseline ">
+            <p className={"text-sm sm:text-sm flex-1 " + (this.state.isChecked === true?"text-text-3  line-through":'text-text-5') }>{this.props.value}</p>
+            <p className="text-xs text-text-3 ">{this.dateProcess(this.props.date)}</p>
+          </div>
+          <button 
+            onClick={this.handleDelete.bind(this)}
+            className="bg-white w-8 h-8 sm:w-4 sm:h-4 sm:text-sm">
+            X
+          </button>     
+        </div>
+        
+        
+      </li> 
+    }
+    return(
+      <div>
+        {item}
+      </div>
       
     );
   }
 }
+
 class List extends React.Component{
   handleClick(){
     console.log('这里是handleClick')
@@ -199,8 +378,18 @@ class List extends React.Component{
       const list = this.getList();
       // console.log(list)
       const listItems = list.map((item) => 
-      
-        <ListItem 
+      <div>
+        {/* <ListItem 
+                 value = {item.context}
+                 date = {item.createdAt}
+                 finishItem = {this.finishItem.bind(this)}
+                 key = {item._id}
+                 id = {item._id}
+                 isChecked = {item.done}
+                 deleteItem ={this.deleteItem.bind(this)}
+                 uploadFile ={this.uploadFile.bind(this)}
+        /> */}
+        <TodoItem 
                  value = {item.context}
                  date = {item.createdAt}
                  finishItem = {this.finishItem.bind(this)}
@@ -210,6 +399,9 @@ class List extends React.Component{
                  deleteItem ={this.deleteItem.bind(this)}
                  uploadFile ={this.uploadFile.bind(this)}
         />
+      </div>
+      
+        
       );
       return(
           <div className=''> 
@@ -531,7 +723,7 @@ class App extends React.Component{
   render(){
     
       return(
-          <div className='  space-y-3 col-span-12 sm:col-span-3 md:col-span-5 lg:md:col-span-4' >
+          <div className='  space-y-3 col-span-12  sm:col-span-3 md:col-span-7 lg:col-span-8' >
           {this.renderInputer()}
           {this.renderList()}
           </div>  

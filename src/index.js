@@ -57,11 +57,12 @@ class Index extends React.Component{
       }
       return(
         <div className='grid  sm:grid-cols-6 md:grid-cols-12  gap-2  p-4 h-screen '>
-          {app}
-          {console.log('现在的状态是:'+this.state.isSignUp)}
-          <div className='hidden sm:flex sm:col-span-3 md:col-span-7 lg:col-span-8 bg-fill-2 p-4 '>
+          
+          
+          <div className='hidden sm:flex sm:col-span-3 md:col-span-5 lg:col-span-4 bg-fill-2 p-4 '>
             123 
           </div>
+          {app}
         </div>
       );
       
