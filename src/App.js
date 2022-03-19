@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 // import cloudbase from "@cloudbase/js-sdk";
 import './index.css';
 import Toast from './toast';
@@ -12,62 +12,33 @@ const inspirecloud = new InspireCloud({ serviceId });
 
 const qiniu = require('qiniu-js')
 
-
-  
-
-
-
-
-
-class Upload extends React.Component{
-
-  constructor(props){
-    super(props);
-    this.handleFileChange = this.handleFileChange.bind(this)
-    this.state = {
-      fileURL:'',
-      token:''
-    };
-  }
-  
-    
-
-  handleFileChange(e){
-
-    const file = e.target.files[0];
-    this.props.uploadFile(file)
-    // this.getUploadTokenAndUpload(fileName,file)
+const UploadFile = (props)=>{
+  const [fileURL,setFileURL] = useState()
+  const handleFileChange = (event) =>{
+    const file = event.target.files[0];
+    props.uploadFile(file)
     const reader  = new FileReader();
-    // const setState = this.setState()
-    let imgURLBase64 = reader.readAsDataURL(file)
-    // let imageURL = reader.readAsText(file)
-    console.log(file)
-
+    reader.readAsDataURL(file)
     reader.onload = (e) => {
-      console.log(imgURLBase64)
       console.log(reader.result)
-      
-      this.setState({
-        fileURL:reader.result
-      })
+      setFileURL(reader.result)
     }
-    
   }
-  render(){
-    return(
-      <div>
-        <input type="file"
-            id="avatar" name="avatar"
-            accept="image/png, image/jpeg"
-            ref={this.fileInput}
-            onChange={this.handleFileChange}
-            >
-          </input>
-          <img src={this.state.fileURL} alt=""/>
-      </div>
-    );
-  }
+  const inputClassName = 'w-full text-sm  text-text-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-fill-4 file:text-text-3 hover:file:bg-fill-2'
 
+  return(
+    <div className='space-y-2'>
+      <input 
+          className={inputClassName}
+          type="file"
+          id="avatar" name="avatar"
+          accept="image/png, image/jpeg"
+          onChange={handleFileChange}
+      >
+      </input>
+      <img src={fileURL} alt=""/>
+    </div>
+  )
 }
 
 class TodoItem extends React.Component{
@@ -160,8 +131,9 @@ class TodoItem extends React.Component{
             添加图片
           </button>
 
-          <Upload uploadFile ={this.uploadFile.bind(this)}/>
+          
           {this.fileInput.current.files[0].name} */}
+          <UploadFile uploadFile ={this.uploadFile.bind(this)}/>
           <textarea  className=' w-full ' value={this.state.textAreaValue} onChange={this.handleChangeTextarea}> </textarea>
         </div>
       
@@ -247,6 +219,7 @@ class List extends React.Component{
       );
   }
 }
+
 class Inputer extends React.Component{
   constructor(props) {
     super(props);
@@ -297,7 +270,6 @@ class Inputer extends React.Component{
       )
   }
 }
-
 
 class App extends React.Component{
 
