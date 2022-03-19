@@ -25,7 +25,7 @@ const UploadFile = (props)=>{
     }
   }
   const inputClassName = 'w-full text-sm  text-text-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-fill-4 file:text-text-3 hover:file:bg-fill-2'
-
+  
   return(
     <div className='space-y-2'>
       <input 
@@ -451,7 +451,21 @@ class App extends React.Component{
       maxWidth: 1000,
       // maxHeight: 618
     }
-    
+    const passfileURL = (key) =>{
+      fetch('https://qc8uqz.api.cloudendpoint.cn/find_item',{
+            method:"POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body:JSON.stringify(
+                {
+                  user_id: user_id,
+                }
+            )
+        })
+            .then(res=>res.json())
+            .then(json=>console.log(json.result))
+    }
     
     qiniu.compressImage(file, options).then(data => {
       let outsidethis = this
@@ -466,6 +480,7 @@ class App extends React.Component{
         },
         complete(res){
           console.log(res)
+          passfileURL(res.key)
           outsidethis.updateFile(key,id)
           
         }
