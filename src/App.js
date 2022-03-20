@@ -1,4 +1,5 @@
 import React,{useState} from 'react';
+import { atom, useAtom } from 'jotai'
 // import cloudbase from "@cloudbase/js-sdk";
 import './index.css';
 import Toast from './toast';
@@ -6,26 +7,134 @@ import Toast from './toast';
 const InspireCloud = require ('@byteinspire/js-sdk');
 const serviceId = 'qc8uqz'; 
 const inspirecloud = new InspireCloud({ serviceId });
+const TokenAtom = atom('') 
+const TokenTimeAtom = atom() 
+
 
 //使用七牛云上传和储存
 //https://developer.qiniu.com/kodo/sdk/javascript
 
 const qiniu = require('qiniu-js')
 
+
 const UploadFile = (props)=>{
-  const [fileURL,setFileURL] = useState()
+  const [token,setToken] = useAtom(TokenAtom)
+  const [tokenTime,setTokenTime] = useAtom(TokenTimeAtom)
+  const [fileURL,setFileURL] = useState(props.fileURL.url)
   const handleFileChange = (event) =>{
-    const file = event.target.files[0];
-    props.uploadFile(file)
-    const reader  = new FileReader();
-    reader.readAsDataURL(file)
-    reader.onload = (e) => {
-      console.log(reader.result)
-      setFileURL(reader.result)
+    if(event.target.files[0]){
+      const file = event.target.files[0];
+      // props.uploadFile(file)
+      getUploadTokenAndUpload(file.name,file,props.id)
+      const reader  = new FileReader();
+      reader.readAsDataURL(file)
+      reader.onload = (e) => {
+        console.log(reader.result)
+        setFileURL(reader.result)
+      }
+    }
+    
+  }
+  const upload = (fileName,fileObj,gettoken,id) =>{
+    const config = {
+      useCdnDomain: true,
+      region: qiniu.region.z2
+    };
+
+    var key = 'todo/'+ props.userID+'/' + Date.now() + fileName
+    // key 是 需要保存的名称
+    const putExtra = {
+      
+    };
+    
+    var token = gettoken
+    //需要使用云函数获取
+
+    var file = fileObj
+    // 通过表单获取地址
+
+    const options = {
+      quality: 0.92,
+      noCompressIfLarger: true,
+      maxWidth: 1000,
+      // maxHeight: 618
+    }
+    qiniu.compressImage(file, options).then(data => {
+      const observable = qiniu.upload(data.dist, key, token, putExtra, config)
+      const observer = {
+        next(res){
+          console.log(res)
+        },
+        error(err){
+          console.log(err)
+        },
+        complete(res){
+          console.log(res)
+          updatefile(props.id,res.key)
+        }
+        
+      }
+      // eslint-disable-next-line no-unused-vars
+      const subscription = observable.subscribe(observer) // 上传开始
+      
+    })
+  }
+  const isTokenTimeOut = (time) =>{
+    let now = Date.now()
+    let deltaT = ((now - time)/1000)/60
+    if(time === 0){
+      return true
+    }else if(deltaT >=  59){
+      return true
+    }else{
+      return false
     }
   }
-  const inputClassName = 'w-full text-sm  text-text-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-fill-4 file:text-text-3 hover:file:bg-fill-2'
+  const getUploadTokenAndUpload = (fileName,fileObj,id) =>{
+    if(token === '' || isTokenTimeOut(tokenTime)){
+    // if(token === '' ){
+      console.log('我在这里')
+      const fnName = 'qiniuUpload';
+      inspirecloud.run(fnName, {  })
+        .then(data => {
+        // console.log(data.token)
+        setToken(data.token) 
+        setTokenTime(Date.now())
+        upload(fileName,fileObj,data.token,id)
+        })
+        .catch(error => {
+          console.log(error)
+        // 处理异常结果
+        });
+      }else{
+        console.log('我直接上传去了')
+        upload(fileName,fileObj,token)
+      }
+  }
+  const updatefile = (id,filename)=>{
+    console.log('我开始工作了')
+    const file ={
+      "type":"img",
+      "url":"http://io.iooslo.tech/"+filename
+    }
+    const update = [{"file" :file}]
+    console.log(update)
+    const fnName = 'update_item';
+      inspirecloud.run(fnName, { id:id , update:update})
+          .then(data => {
+          console.log(data)
+          Toast.success('更新图片成功')
+          props.uploadFile(file)
+          })
+          .catch(error => {
+            console.log(error)
+          });
+  }
   
+
+
+
+  const inputClassName = 'w-full text-sm  text-text-3 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-fill-4 file:text-text-3 hover:file:bg-fill-2'
   return(
     <div className='space-y-2'>
       <input 
@@ -82,6 +191,12 @@ class TodoItem extends React.Component{
       this.props.finishItem(msg)
     }
   }
+  componentDidMount(){
+    let file = this.props.fileURL
+    this.setState({
+      fileURL:file
+    })
+  }
   handleOpen(){
     let state = this.state.isOpen
     this.setState({
@@ -89,10 +204,10 @@ class TodoItem extends React.Component{
     })
   }
   uploadFile(file){
+    this.setState({
+      fileURL:file
+    })
     console.log('我在listItem收到了File'+ file)
-    var id = this.props.id
-    console.log(id)
-    this.props.uploadFile(file,id)
   }
   dateProcess(date){
   
@@ -133,7 +248,7 @@ class TodoItem extends React.Component{
 
           
           {this.fileInput.current.files[0].name} */}
-          <UploadFile uploadFile ={this.uploadFile.bind(this)}/>
+          <UploadFile userID={this.props.userID} uploadFile={this.uploadFile.bind(this) } fileURL={this.state.fileURL} id = {this.props.id}/>
           <textarea  className=' w-full ' value={this.state.textAreaValue} onChange={this.handleChangeTextarea}> </textarea>
         </div>
       
@@ -202,12 +317,13 @@ class List extends React.Component{
         <TodoItem 
           value = {item.context}
           date = {item.createdAt}
+          fileURL = {item.file}
           finishItem = {this.finishItem.bind(this)}
           key = {item._id}
           id = {item._id}
+          userID={this.props.userID}
           isChecked = {item.done}
           deleteItem ={this.deleteItem.bind(this)}
-          uploadFile ={this.uploadFile.bind(this)}
         />
       );
       return(
@@ -275,7 +391,7 @@ class App extends React.Component{
 
   constructor(props) {
     super(props);
-    this.upload = this.upload.bind(this)
+    // this.upload = this.upload.bind(this)
     this.state = {
       list:[],
       todo_item:[],
@@ -317,15 +433,18 @@ class App extends React.Component{
   deleteItem(id){
     //从本地删除
     const list = [...this.state.list];
-    list.splice(list.findIndex(item => item._id === id),1,);
+    const itemIndex = list.findIndex(item => item._id === id)
+    const fileURL = (list[itemIndex].file.url?list[itemIndex].file.url:'nofile')
+   
+    list.splice(itemIndex,1,);
     // console.log(list)
     this.setState({
       todo_item:list,
       list:list,
     })  
-    const user_id = this.state.user_id
+    
     const fnName = 'delete_item';
-      inspirecloud.run(fnName, { user_id: user_id,id:id })
+      inspirecloud.run(fnName, { id:id ,fileURL:fileURL})
           .then(data => {
           console.log(data)
           Toast.success('删除成功')
@@ -428,103 +547,7 @@ class App extends React.Component{
     });
 
   }
-  upload(fileName,fileObj,gettoken,id){
-    const config = {
-      useCdnDomain: true,
-      region: qiniu.region.z2
-    };
-    var key = Date.now() + fileName
-    // key 是 需要保存的名称
-    const putExtra = {
-      
-    };
-    
-    var token = gettoken
-    //需要使用云函数获取
-
-    var file = fileObj
-    // 通过表单获取地址
-
-    const options = {
-      quality: 0.92,
-      noCompressIfLarger: true,
-      maxWidth: 1000,
-      // maxHeight: 618
-    }
-    const passfileURL = (key) =>{
-      fetch('https://qc8uqz.api.cloudendpoint.cn/find_item',{
-            method:"POST",
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body:JSON.stringify(
-                {
-                  user_id: user_id,
-                }
-            )
-        })
-            .then(res=>res.json())
-            .then(json=>console.log(json.result))
-    }
-    
-    qiniu.compressImage(file, options).then(data => {
-      let outsidethis = this
-      const observable = qiniu.upload(data.dist, key, token, putExtra, config)
-      const observer = {
-        next(res){
-          console.log(res)
-        },
-        error(err){
-          console.log(err)
-          
-        },
-        complete(res){
-          console.log(res)
-          passfileURL(res.key)
-          outsidethis.updateFile(key,id)
-          
-        }
-      }
-      // eslint-disable-next-line no-unused-vars
-      const subscription = observable.subscribe(observer) // 上传开始
-      
-    })
-    
-    
-  }
-  isTokenTimeOut(){
-    let now = Date.now()
-    let deltaT = ((now - this.state.tokenTime)/1000)/60
-    if(this.state.tokenTime === 0){
-      return true
-    }else if(deltaT >=  59){
-      return true
-    }else{
-      return false
-    }
-  }
-  getUploadTokenAndUpload(fileName,fileObj,id){
-    var token = this.state.token
-    if(token === '' && this.isTokenTimeOut()){
-    // if(token === '' ){
-      const fnName = 'qiniuUpload';
-      inspirecloud.run(fnName, {  })
-        .then(data => {
-        // console.log(data.token)
-        this.setState({
-          token:data.token,
-          tokenTime:Date.now()
-        })
-        this.upload(fileName,fileObj,data.token,id)
-        })
-        .catch(error => {
-          console.log(error)
-        // 处理异常结果
-        });
-      }else{
-        this.upload(fileName,fileObj,token)
-      }
-  }
+  
   renderInputer() {
     return (
     <Inputer
@@ -541,6 +564,7 @@ class App extends React.Component{
         uploadFile = {this.uploadFile.bind(this)}
         finishItem = {this.finishItem.bind(this)}
         file = {this.state.file}
+        userID={this.props.userID}
       />
     );
   }
